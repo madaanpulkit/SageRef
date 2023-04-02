@@ -34,7 +34,6 @@ class ReflectionDataset(Dataset):
         input_filename = os.path.join(self.root_dir, self.filenames[idx])
         label1_filename = input_filename.replace('-input', '-label1')
         label2_filename = input_filename.replace('-input', '-label2')
-        #print('input:', input_filename, 'input exists:', os.path.isfile(input_filename), 'label1:', label1_filename, 'label1 exists:', os.path.isfile(label1_filename), 'label2:', label2_filename, 'label2 exists:', os.path.isfile(label2_filename))
 
         try:
             # create the file images from the file names
@@ -136,7 +135,7 @@ class InvalidSplitsError(Exception):
     pass
 
 
-# Shows how to use
+# Shows how to use the Reflection Data Module
 if __name__ == "__main__":
     # This is where the data would be stored
     data_dir_path = os.path.join(os.getcwd(), 'data')
@@ -149,25 +148,16 @@ if __name__ == "__main__":
     # Sets up the splits of the data
     data_module.setup()
 
+    # Get the dataloaders for train, split, test
+    train_dataloader = data_module.train_dataloader()
+    validation_dataloader = data_module.validation_dataloader()
+    test_dataloader = data_module.test_dataloader()
+
     # Example of how to loop through each batch of the train dataloader
-    for batch in data_module.train_dataloader():
+    for batch in train_dataloader:
         # how to access the input image (this has the reflections)
         print(len(batch['input']), '\n')
         print(len(batch['label1']), '\n')  # how to access the first image
         # how to access the second image which is the reflection in the input image
-        print(len(batch['label2']), '\n')
-        print('\n\n\n')
-    
-    # Example of how to loop through each batch of the validation dataloader
-    for batch in data_module.validation_dataloader():
-        print(len(batch['input']), '\n')
-        print(len(batch['label1']), '\n')
-        print(len(batch['label2']), '\n')
-        print('\n\n\n')
-    
-    # Example of how to loop through each batch of the test dataloader
-    for batch in data_module.test_dataloader():
-        print(len(batch['input']), '\n')
-        print(len(batch['label1']), '\n')
         print(len(batch['label2']), '\n')
         print('\n\n\n')
