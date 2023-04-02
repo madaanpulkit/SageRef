@@ -15,17 +15,17 @@ class ReflectionDataset(Dataset):
     Args:
         root_dir (str): Root directory of the dataset.
         transform (callable, Default: None): A function/transform that takes in an PIL image and returns a transformed version.
-
+        img_size (tuple)(len: 2)(Default: (224, 224)): Size to resize all images to (img_size, img_size)
     Returns:
         dict: A dictionary containing 'input', 'label1', and 'label2'. The values are the transformed input image and corresponding label images.
     '''
 
-    def __init__(self, root_dir, transform=None):
+    def __init__(self, root_dir, transform=None, img_size = (224, 224)):
         self.root_dir = root_dir
         self.filenames = [filename for filename in os.listdir(
             root_dir) if filename.endswith('-input.png')]
         self.transform = transforms.Compose(
-            [transforms.Resize((224, 224)), transforms.ToTensor()]) if not transform else transform
+            [transforms.Resize(img_size), transforms.ToTensor()]) if not transform else transform
 
     def __len__(self):
         return len(self.filenames)
