@@ -25,28 +25,32 @@ class ReflectionDataset(Dataset):
         self.filenames = [filename for filename in os.listdir(
             root_dir) if filename.endswith('-input.png')]
         self.transform = transforms.Compose(
-            [transforms.ToTensor()]) if not transform else transform
+            [transforms.Resize((224, 224)), transforms.ToTensor()]) if not transform else transform
 
     def __len__(self):
         return len(self.filenames)
 
     def __getitem__(self, idx):
-        input_filename = self.filenames[idx]
+        input_filename = os.path.join(self.root_dir, self.filenames[idx])
         label1_filename = input_filename.replace('-input', '-label1')
         label2_filename = input_filename.replace('-input', '-label2')
+        #print('input:', input_filename, 'input exists:', os.path.isfile(input_filename), 'label1:', label1_filename, 'label1 exists:', os.path.isfile(label1_filename), 'label2:', label2_filename, 'label2 exists:', os.path.isfile(label2_filename))
 
-        # create the file images from the file names
-        input_image = Image.open(input_filename)
-        label1_image = Image.open(label1_filename)
-        label2_image = Image.open(label2_filename)
+        try:
+            # create the file images from the file names
+            input_image = Image.open(input_filename)
+            label1_image = Image.open(label1_filename)
+            label2_image = Image.open(label2_filename)
 
-        # Apply the transforms
-        transformed_input = self.transform(input_image)
-        transformed_label1 = self.transform(label1_image)
-        transformed_label2 = self.transform(label2_image)
+            # Apply the transforms
+            transformed_input = self.transform(input_image)
+            transformed_label1 = self.transform(label1_image)
+            transformed_label2 = self.transform(label2_image)
 
-        # return the triplet
-        return {'input': transformed_input, 'label1': transformed_label1, 'label2': transformed_label2}
+            # return the triplet
+            return {'input': transformed_input, 'label1': transformed_label1, 'label2': transformed_label2}
+        except:
+            return None
 
 
 class ReflectionDataModule(pl.LightningDataModule):
@@ -78,6 +82,7 @@ class ReflectionDataModule(pl.LightningDataModule):
             raise InvalidSplitsError(
                 f"The provided data split percentages {splits} needs to add up to 1.0")
 
+
     def prepare_data(self):
         '''
         Downloads the dataset from the specified Google Drive folder URL in the constructor to the 
@@ -88,11 +93,12 @@ class ReflectionDataModule(pl.LightningDataModule):
             gdown.download_folder(url=self.data_url, output=self.data_dir,
                                   quiet=True, use_cookies=False, remaining_ok=True)
 
+
     def setup(self):
         '''
         Performs the dataset splits into training, validation and testing sets
         '''
-        dataset = ReflectionDataset(self.data_dir)
+        dataset = ReflectionDataset(root_dir=self.data_dir)
         self.num_samples = len(dataset)
         self.train_size = int(self.num_samples * self.train_split)
         self.test_size = int(self.num_samples * self.test_split)
@@ -104,19 +110,26 @@ class ReflectionDataModule(pl.LightningDataModule):
         self.train_dataset, self.validation_dataset, self.test_dataset = torch.utils.data.random_split(
             dataset, [self.train_size, self.validation_size, self.test_size])
 
+    def collate_fn(self, batch):
+        batch = list(filter(lambda x: x is not None, batch))
+        return torch.utils.data.dataloader.default_collate(batch)
+
+
     def train_dataloader(self):
         '''
         Returns Lightning data loader for the training dataset
         '''
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn= self.collate_fn, shuffle=True, num_workers=self.num_workers)
+
 
     def validation_dataloader(self):
         '''Returns Lightning data loader for the training dataset'''
-        return DataLoader(self.validation_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.validation_dataset, batch_size=self.batch_size, collate_fn= self.collate_fn, num_workers=self.num_workers)
+
 
     def test_dataloader(self):
         '''Returns Lightning data loader for the training dataset'''
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, collate_fn= self.collate_fn, num_workers=self.num_workers)
 
 
 class InvalidSplitsError(Exception):
@@ -127,7 +140,6 @@ class InvalidSplitsError(Exception):
 if __name__ == "__main__":
     # This is where the data would be stored
     data_dir_path = os.path.join(os.getcwd(), 'data')
-
     data_module = ReflectionDataModule(
         data_dir=data_dir_path, gdrive_folder_url='https://drive.google.com/drive/folders/1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5?usp=share_link')
 
@@ -137,11 +149,25 @@ if __name__ == "__main__":
     # Sets up the splits of the data
     data_module.setup()
 
-    # Example of how to loop through each batch
+    # Example of how to loop through each batch of the train dataloader
     for batch in data_module.train_dataloader():
         # how to access the input image (this has the reflections)
-        print(batch['input'], '\n')
-        print(batch['label1'], '\n')  # how to access the first image
+        print(len(batch['input']), '\n')
+        print(len(batch['label1']), '\n')  # how to access the first image
         # how to access the second image which is the reflection in the input image
-        print(batch['label2'], '\n')
+        print(len(batch['label2']), '\n')
+        print('\n\n\n')
+    
+    # Example of how to loop through each batch of the validation dataloader
+    for batch in data_module.validation_dataloader():
+        print(len(batch['input']), '\n')
+        print(len(batch['label1']), '\n')
+        print(len(batch['label2']), '\n')
+        print('\n\n\n')
+    
+    # Example of how to loop through each batch of the test dataloader
+    for batch in data_module.test_dataloader():
+        print(len(batch['input']), '\n')
+        print(len(batch['label1']), '\n')
+        print(len(batch['label2']), '\n')
         print('\n\n\n')
