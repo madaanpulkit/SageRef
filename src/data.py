@@ -91,7 +91,7 @@ class ReflectionDataModule(pl.LightningDataModule):
         if not os.path.isdir(self.data_dir):
             gdown.download_folder(url=self.data_url, output=self.data_dir,
                                   quiet=True, use_cookies=False, remaining_ok=True)
-
+        
 
     def setup(self):
         '''
@@ -161,3 +161,4 @@ if __name__ == "__main__":
         # how to access the second image which is the reflection in the input image
         print(len(batch['label2']), '\n')
         print('\n\n\n')
+    
