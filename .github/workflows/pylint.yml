@@ -32,9 +32,4 @@ jobs:
         with:
           auto_fix: true
           commit: false
-          black: true
-          black_auto_fix: true
-          flake8: true
-          flake8_auto_fix: false
           autopep8: true
-          autopep8_auto_fix: true
