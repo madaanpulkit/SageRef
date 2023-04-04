@@ -33,7 +33,6 @@ class ReflectionDataset(Dataset):
 
     def __getitem__(self, idx):
         input_filename = os.path.join(self.data_dir, self.filenames[idx])
-        print("link:", input_filename)
         label1_filename = input_filename.replace('-input', '-label1')
         label2_filename = input_filename.replace('-input', '-label2')
 
@@ -79,7 +78,7 @@ class ReflectionDataModule(pl.LightningDataModule):
         '''
         Performs the initialization of the dataset
         '''
-        root_dir = os.path.dirname(os.path.dirname(self.data_dir))
+        root_dir = os.path.dirname(self.data_dir)
         print(root_dir, data_dir_path)
         self.train_dataset = ReflectionDataset(self.data_dir, os.path.join(root_dir, "train.csv"))
         self.val_dataset = ReflectionDataset(self.data_dir, os.path.join(root_dir, "validation.csv"))
@@ -115,7 +114,7 @@ class InvalidSplitsError(Exception):
 # Shows how to use the Reflection Data Module
 if __name__ == "__main__":
     # This is where the data would be stored
-    data_dir_path = os.path.join(os.getcwd(), 'data')
+    data_dir_path = os.path.join(os.path.dirname(os.getcwd()), 'data')
     data_module = ReflectionDataModule(
         data_dir=data_dir_path)
 
@@ -139,5 +138,6 @@ if __name__ == "__main__":
         print(len(batch[1]), '\n')  # how to access the first image
         # how to access the second image which is the reflection in the input image
         print(len(batch[2]), '\n')
+        print(batch)
         print('\n\n\n')
     
