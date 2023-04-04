@@ -1,11 +1,12 @@
 import os
 
-import gdown
+
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 from PIL import Image
+from utils import read_data_splits
 
 
 class ReflectionDataset(Dataset):
@@ -20,10 +21,10 @@ class ReflectionDataset(Dataset):
         dict: A dictionary containing 'input', 'label1', and 'label2'. The values are the transformed input image and corresponding label images.
     '''
 
-    def __init__(self, root_dir, transform=None, img_size = (224, 224)):
+    def __init__(self, data_dir, root_dir, transform=None, img_size=(224, 224)):
+        self.data_dir = data_dir
         self.root_dir = root_dir
-        self.filenames = [filename for filename in os.listdir(
-            root_dir) if filename.endswith('-input.png')]
+        self.filenames = [filename for filename in read_data_splits(root_dir) if filename.endswith('-input.png')]
         self.transform = transforms.Compose(
             [transforms.Resize(img_size), transforms.ToTensor()]) if not transform else transform
 
@@ -31,7 +32,8 @@ class ReflectionDataset(Dataset):
         return len(self.filenames)
 
     def __getitem__(self, idx):
-        input_filename = os.path.join(self.root_dir, self.filenames[idx])
+        input_filename = os.path.join(self.data_dir, self.filenames[idx])
+        print("link:", input_filename)
         label1_filename = input_filename.replace('-input', '-label1')
         label2_filename = input_filename.replace('-input', '-label2')
 
@@ -47,7 +49,7 @@ class ReflectionDataset(Dataset):
             transformed_label2 = self.transform(label2_image)
 
             # return the triplet
-            return {'input': transformed_input, 'label1': transformed_label1, 'label2': transformed_label2}
+            return (transformed_input, transformed_label1, transformed_label2)
         except:
             return None
 
@@ -66,48 +68,23 @@ class ReflectionDataModule(pl.LightningDataModule):
         num_workers (int)(Default: 4): The number of workers to use for the data loaders.
     '''
 
-    def __init__(self, data_dir, gdrive_folder_url, train_split=0.7, validation_split=0.2, test_split=0.1, batch_size=32, num_workers=4):
+    def __init__(self, data_dir, batch_size=32, num_workers=4):
         super().__init__()
         self.data_dir = data_dir
-        self.data_url = gdrive_folder_url
-        self.train_split = round(train_split, 3)
-        self.validation_split = round(validation_split, 3)
-        self.test_split = round(test_split, 3)
         self.batch_size = batch_size
         self.num_workers = num_workers
-        splits = round(
-            sum([self.train_split, self.validation_split, self.test_split]), 3)
-        if splits != 1:
-            raise InvalidSplitsError(
-                f"The provided data split percentages {splits} needs to add up to 1.0")
 
-
-    def prepare_data(self):
-        '''
-        Downloads the dataset from the specified Google Drive folder URL in the constructor to the 
-        specified data directory.
-        '''
-
-        if not os.path.isdir(self.data_dir):
-            gdown.download_folder(url=self.data_url, output=self.data_dir,
-                                  quiet=True, use_cookies=False, remaining_ok=True)
-        
 
     def setup(self):
         '''
-        Performs the dataset splits into training, validation and testing sets
+        Performs the initialization of the dataset
         '''
-        dataset = ReflectionDataset(root_dir=self.data_dir)
-        self.num_samples = len(dataset)
-        self.train_size = int(self.num_samples * self.train_split)
-        self.test_size = int(self.num_samples * self.test_split)
-        self.validation_size = int(self.num_samples * self.validation_split)
-        self.train_size += int(self.num_samples - (self.train_size +
-                               self.validation_size + self.test_size))
-
-        # Splits randomly by the percentages of splits
-        self.train_dataset, self.validation_dataset, self.test_dataset = torch.utils.data.random_split(
-            dataset, [self.train_size, self.validation_size, self.test_size])
+        root_dir = os.path.dirname(os.path.dirname(self.data_dir))
+        print(root_dir, data_dir_path)
+        self.train_dataset = ReflectionDataset(self.data_dir, os.path.join(root_dir, "train.csv"))
+        self.val_dataset = ReflectionDataset(self.data_dir, os.path.join(root_dir, "validation.csv"))
+        self.test_dataset = ReflectionDataset(self.data_dir, os.path.join(root_dir, "test.csv"))
+        
 
     def collate_fn(self, batch):
         batch = list(filter(lambda x: x is not None, batch))
@@ -121,9 +98,9 @@ class ReflectionDataModule(pl.LightningDataModule):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn= self.collate_fn, shuffle=True, num_workers=self.num_workers)
 
 
-    def validation_dataloader(self):
+    def val_dataloader(self):
         '''Returns Lightning data loader for the training dataset'''
-        return DataLoader(self.validation_dataset, batch_size=self.batch_size, collate_fn= self.collate_fn, num_workers=self.num_workers)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn= self.collate_fn, num_workers=self.num_workers)
 
 
     def test_dataloader(self):
@@ -140,7 +117,7 @@ if __name__ == "__main__":
     # This is where the data would be stored
     data_dir_path = os.path.join(os.getcwd(), 'data')
     data_module = ReflectionDataModule(
-        data_dir=data_dir_path, gdrive_folder_url='https://drive.google.com/drive/folders/1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5?usp=share_link')
+        data_dir=data_dir_path)
 
     # Downloads the Data
     data_module.prepare_data()
@@ -150,15 +127,17 @@ if __name__ == "__main__":
 
     # Get the dataloaders for train, split, test
     train_dataloader = data_module.train_dataloader()
-    validation_dataloader = data_module.validation_dataloader()
+    val_dataloader = data_module.val_dataloader()
     test_dataloader = data_module.test_dataloader()
-
+    print(len(train_dataloader.dataset))
+    print(len(test_dataloader.dataset))
+    print(len(val_dataloader.dataset))
     # Example of how to loop through each batch of the train dataloader
     for batch in train_dataloader:
         # how to access the input image (this has the reflections)
-        print(len(batch['input']), '\n')
-        print(len(batch['label1']), '\n')  # how to access the first image
+        print(len(batch[0]), '\n')
+        print(len(batch[1]), '\n')  # how to access the first image
         # how to access the second image which is the reflection in the input image
-        print(len(batch['label2']), '\n')
+        print(len(batch[2]), '\n')
         print('\n\n\n')
     
