@@ -1,6 +1,15 @@
 # SageRef
 SageRef: Single Image Reflection Removal
 
+
+- [SageRef](#sageref)
+- [Datasets Used](#datasets-used)
+- [Evaluation](#evaluation)
+  - [Data used for evaluation](#data-used-for-evaluation)
+  - [Performance Metrics](#performance-metrics)
+  - [Models used for comparisons](#models-used-for-comparisons)
+
+
 # Datasets Used
 - [SIR2 Benchmark Dataset](https://rose1.ntu.edu.sg/dataset/sir2Benchmark/)
 - [CeilNet](https://github.com/fqnchina/CEILNet)
