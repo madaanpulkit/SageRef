@@ -3,3 +3,4 @@ matplotlib==3.5.3
 torch==1.12.1
 torchvision==0.13.1
 pipreqs==0.4.11
+lpips==0.1.4
