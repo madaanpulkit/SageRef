@@ -8,7 +8,6 @@ from pytorch_lightning import Callback
 import os
 import random
 import csv
-from PIL import Image
 
 
 class InvalidSplitsError(Exception):
@@ -77,8 +76,9 @@ def get_train_images(train_dataset, num):
 
 def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, validation_split=0.2, test_split=0.1):
     if not os.path.isdir(data_dir_path):
-        raise NotADirectoryError("The data directory path provided is not valid!")
-    
+        raise NotADirectoryError(
+            "The data directory path provided is not valid!")
+
     splits = round(
         sum([train_split, validation_split, test_split]), 3)
     if splits != 1:
@@ -86,18 +86,18 @@ def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, valida
             f"The provided data split percentages {splits} needs to add up to 1.0")
     split_dict = {'train': [], 'validation': [], 'test': []}
     input_files = [filename for filename in os.listdir(
-            data_dir_path) if filename.endswith('-input.png')]
+        data_dir_path) if filename.endswith('-input.png')]
     num_samples = len(input_files)
     random.shuffle(input_files)
     train_size = int(num_samples * train_split)
     validation_size = int(num_samples * validation_split)
     test_size = int(num_samples * test_split)
     train_size += int(num_samples - (train_size +
-                               validation_size + test_size))
+                                     validation_size + test_size))
     for filename in input_files:
         label1 = filename.replace('-input', '-label1')
         label2 = filename.replace('-input', '-label2')
-        
+
         if train_size > 0:
             split_dict['train'].extend([filename, label1, label2])
             train_size -= 1
@@ -108,7 +108,6 @@ def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, valida
         else:
             # goes to testing set
             split_dict['test'].extend([filename, label1, label2])
-            
 
     with open(os.path.join(output_dir_path, 'train.csv'), 'w') as f:
         writer = csv.writer(f)
@@ -123,6 +122,7 @@ def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, valida
         for file_name in split_dict['test']:
             writer.writerow([file_name])
 
+
 def read_data_splits(split_file_path):
     if not os.path.isfile(split_file_path):
         raise FileNotFoundError("Please provide valid path to a file!")
@@ -130,8 +130,8 @@ def read_data_splits(split_file_path):
         reader = csv.reader(f)
         file_to_split = list(reader)
     return [row[0] for row in file_to_split]
-    
-    
+
+
 if __name__ == "__main__":
     '''train_dataset = CIFAR10(root=DATASET_PATH, train=True,
                             transform=transform, download=True)
@@ -153,14 +153,14 @@ if __name__ == "__main__":
         img_masked[:, : img_masked.shape[1] // 2, :] = img_mean
         compare_imgs(img, img_masked, "Masked -")
     '''
-    parent_dir = os.path.dirname(os.getcwd())
+    parent_dir = os.path.join(os.path.dirname(os.getcwd()), "splits")
     data_dir_path = os.path.join(parent_dir, 'data')
-    output_dir_path= parent_dir
+    output_dir_path = parent_dir
     generate_data_splits(data_dir_path, output_dir_path)
     print(read_data_splits(os.path.join(output_dir_path, 'train.csv')))
     print()
     print()
-    print(read_data_splits(os.path.join(output_dir_path, 'validation.csv')))
+    print(read_data_splits(os.path.join(output_dir_path, 'val.csv')))
     print()
     print()
     print(read_data_splits(os.path.join(output_dir_path, 'test.csv')))
