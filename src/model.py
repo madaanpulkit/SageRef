@@ -1,7 +1,7 @@
 # Source: https://github.com/phlippe/uvadlc_notebooks/blob/master/docs/tutorial_notebooks/tutorial9/AE_CIFAR10.ipynb
 
 from nets import Encoder, Decoder
-from torch.nn import optim
+import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import lightning as L
@@ -10,25 +10,20 @@ import lightning as L
 class Autoencoder(L.LightningModule):
     def __init__(
         self,
-        base_channel_size: int,
         latent_dim: int,
-        encoder_class: object = Encoder,
-        decoder_class: object = Decoder,
-        num_input_channels: int = 3,
-        width: int = 32,
-        height: int = 32,
+        encoder_class: nn.Module = Encoder,
+        decoder_class: nn.Module = Decoder,
+        width: int = 224,
+        height: int = 224,
     ):
         super().__init__()
         # Saving hyperparameters of autoencoder
         self.save_hyperparameters()
         # Creating encoder and decoder
-        self.encoder = encoder_class(
-            num_input_channels, base_channel_size, latent_dim)
-        self.decoder = decoder_class(
-            num_input_channels, base_channel_size, latent_dim)
+        self.encoder = encoder_class(latent_dim)
+        self.decoder = decoder_class(latent_dim)
         # Example input array needed for visualizing the graph of the network
-        self.example_input_array = torch.zeros(
-            2, num_input_channels, width, height)
+        self.example_input_array = torch.zeros(2, 3, width, height)
 
     def forward(self, x):
         """The forward function takes in an image and returns the reconstructed image."""
@@ -45,10 +40,10 @@ class Autoencoder(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = nn.optim.Adam(self.parameters(), lr=1e-3)
         # Using a scheduler is optional but can be helpful.
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        scheduler = nn.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=0.2, patience=20, min_lr=5e-5)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
 
