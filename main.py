@@ -79,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--gpu', 
         type=int, 
+        require=True,
         help='gpu id'
         )
     parser.add_argument(
