@@ -63,8 +63,10 @@ def main(args):
         args.split_dir, args.data_dir, args.batch_size)
     callbacks = [
         ModelCheckpoint(dirpath=args.out_dir),
-        ModelCheckpoint(monitor="val/loss", dirpath=args.out_dir, filename="best"),
-        GenerateCallback(get_train_images(args.data_dir, 4), every_n_epochs=10),
+        ModelCheckpoint(monitor="val/loss",
+                        dirpath=args.out_dir, filename="best"),
+        GenerateCallback(get_train_images(
+            args.data_dir, 4), every_n_epochs=10),
         LearningRateMonitor("epoch")]
     trainer = pl.Trainer(
         max_epochs=args.epochs,

@@ -27,9 +27,9 @@ class ReflectionDataset(Dataset):
             split_file) if filename.endswith('-input.png')]
         self.transform = transforms.Compose(
             [
-            transforms.Resize(img_size), 
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,),(0.5,))
+                transforms.Resize(img_size),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5,), (0.5,))
             ]) if not transform else transform
 
     def __len__(self):

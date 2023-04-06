@@ -73,7 +73,8 @@ class Autoencoder(pl.LightningModule):
         psnr, ssim, lpips = self.calc_metrics(batch)
         self.log("train/psnr", psnr, on_epoch=True, prog_bar=True, logger=True)
         self.log("train/ssim", ssim, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/lpips", lpips, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/lpips", lpips, on_epoch=True,
+                 prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -90,4 +91,5 @@ class Autoencoder(pl.LightningModule):
         psnr, ssim, lpips = self.calc_metrics(batch)
         self.log("test/psnr", psnr, on_epoch=True, prog_bar=True, logger=True)
         self.log("test/ssim", ssim, on_epoch=True, prog_bar=True, logger=True)
-        self.log("test/lpips", lpips, on_epoch=True, prog_bar=True, logger=True)
+        self.log("test/lpips", lpips, on_epoch=True,
+                 prog_bar=True, logger=True)

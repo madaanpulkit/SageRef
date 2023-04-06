@@ -74,10 +74,11 @@ class Decoder(nn.Module):
         x = self.net(x)
         return x
 
+
 class PrintLayer(nn.Module):
     def __init__(self):
         super(PrintLayer, self).__init__()
-    
+
     def forward(self, x):
         # Do your print / debug stuff here
         print("--------\n", x.shape, "\n--------")

@@ -20,7 +20,8 @@ class InvalidSplitsError(Exception):
 class GenerateCallback(Callback):
     def __init__(self, imgs, every_n_epochs=1):
         super().__init__()
-        self.input_imgs, self.label_imgs = imgs  # Images to reconstruct during training
+        # Images to reconstruct during training
+        self.input_imgs, self.label_imgs = imgs
         # Only save those images every N epochs (otherwise tensorboard gets quite large)
         self.every_n_epochs = every_n_epochs
 
@@ -34,7 +35,8 @@ class GenerateCallback(Callback):
                 reconst_imgs = pl_module(input_imgs)
                 pl_module.train()
             # Plot and add to tensorboard
-            imgs = torch.stack([input_imgs, reconst_imgs, label_imgs], dim=1).flatten(0, 1)
+            imgs = torch.stack(
+                [input_imgs, reconst_imgs, label_imgs], dim=1).flatten(0, 1)
             grid = torchvision.utils.make_grid(
                 imgs, nrow=3, normalize=True, range=(-1, 1))
             trainer.logger.experiment.add_image(
@@ -92,13 +94,13 @@ def get_train_images(data_dir, num, transform=None, img_size=(224, 224)):
         if samples[i].endswith('-input.png'):
             train_images.append(transform(Image.open(
                 os.path.join(
-                data_dir, 
-                samples[i]
+                    data_dir,
+                    samples[i]
                 ))))
             label_images.append(transform(Image.open(
                 os.path.join(
-                data_dir, 
-                samples[i].replace('-input', '-label1')
+                    data_dir,
+                    samples[i].replace('-input', '-label1')
                 ))))
             pbar.update(1)
         i += 1
