@@ -31,5 +31,5 @@ jobs:
         uses: wearerequired/lint-action@v2
         with:
           auto_fix: true
-          commit: false
+          commit: true
           autopep8: true
