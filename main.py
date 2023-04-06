@@ -5,9 +5,11 @@ import shutil
 import threading
 import argparse
 import lightning.pytorch as pl
-from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from src.model import Autoencoder
 from src.data import ReflectionDataModule
+from src.utils import GenerateCallback
+from src.utils import get_train_images
 
 
 def download_data_from_google_drive(url, data_dir):
@@ -59,13 +61,16 @@ def main(args):
     module = Autoencoder(args.latent_dim, args.learning_rate)
     datamodule = ReflectionDataModule(
         args.split_dir, args.data_dir, args.batch_size)
-    callbacks = [ModelCheckpoint(monitor="val_loss", dirpath=args.out_dir)]
+    callbacks = [
+        ModelCheckpoint(dirpath=args.out_dir),
+        ModelCheckpoint(monitor="val/loss", dirpath=args.out_dir, filename="best"),
+        GenerateCallback(get_train_images(args.data_dir, 4), every_n_epochs=10),
+        LearningRateMonitor("epoch")]
     trainer = pl.Trainer(
         max_epochs=args.epochs,
         accelerator="gpu",
         devices=[args.gpu],
         callbacks=callbacks,
-        enable_checkpointing=True,
         default_root_dir=args.out_dir,
         detect_anomaly=True)
 
