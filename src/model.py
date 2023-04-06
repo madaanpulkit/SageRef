@@ -48,8 +48,15 @@ class Autoencoder(L.LightningModule):
 
         psnr = PeakSignalNoiseRatio()
         ssim = StructuralSimilarityIndexMeasure()
-        lpips = 0 #TODO: LPIPS Implementation requires normalization of images to [0,1]
-        return psnr(x_hat, x), ssim(x_hat, x), lpips
+        try:
+            lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg", reduction='mean', normalize=True)
+            lpips_val = lpips(x_hat, x)
+        except Exception as e:
+            self.log("Error while calculating LPIPS")
+            self.log("Details", str(e))
+            lpips_val = 0
+
+        return psnr(x_hat, x), ssim(x_hat, x), lpips_val
 
     def configure_optimizers(self):
         optimizer = nn.optim.Adam(self.parameters(), lr=1e-3)
@@ -74,4 +81,4 @@ class Autoencoder(L.LightningModule):
         psnr, ssim, lpips = self.calc_metrics(batch)
         self.log("psnr", psnr)
         self.log("ssim", ssim)
-        # self.log("lpips", lpips)
+        self.log("lpips", lpips)
