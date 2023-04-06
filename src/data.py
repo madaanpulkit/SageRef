@@ -26,7 +26,11 @@ class ReflectionDataset(Dataset):
         self.filenames = [filename for filename in read_data_splits(
             split_file) if filename.endswith('-input.png')]
         self.transform = transforms.Compose(
-            [transforms.Resize(img_size), transforms.ToTensor()]) if not transform else transform
+            [
+                transforms.Resize(img_size),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5,), (0.5,))
+            ]) if not transform else transform
 
     def __len__(self):
         return len(self.filenames)

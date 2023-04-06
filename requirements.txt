@@ -4,5 +4,7 @@ Pillow==9.5.0
 matplotlib==3.5.3
 torch==1.12.1
 torchvision==0.13.1
-pipreqs==0.4.11
 lpips==0.1.4
+tensorboardX==2.6
+tqdm==4.64.1
+pipreqs==0.4.11

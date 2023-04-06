@@ -5,9 +5,12 @@ import torch.nn.functional as F
 import torchvision
 import matplotlib.pyplot as plt
 from lightning.pytorch.callbacks import Callback
+import torchvision.transforms as transforms
 import os
 import random
 import csv
+from PIL import Image
+from tqdm.auto import tqdm
 
 
 class InvalidSplitsError(Exception):
@@ -15,9 +18,10 @@ class InvalidSplitsError(Exception):
 
 
 class GenerateCallback(Callback):
-    def __init__(self, input_imgs, every_n_epochs=1):
+    def __init__(self, imgs, every_n_epochs=1):
         super().__init__()
-        self.input_imgs = input_imgs  # Images to reconstruct during training
+        # Images to reconstruct during training
+        self.input_imgs, self.label_imgs = imgs
         # Only save those images every N epochs (otherwise tensorboard gets quite large)
         self.every_n_epochs = every_n_epochs
 
@@ -25,14 +29,16 @@ class GenerateCallback(Callback):
         if trainer.current_epoch % self.every_n_epochs == 0:
             # Reconstruct images
             input_imgs = self.input_imgs.to(pl_module.device)
+            label_imgs = self.label_imgs.to(pl_module.device)
             with torch.no_grad():
                 pl_module.eval()
                 reconst_imgs = pl_module(input_imgs)
                 pl_module.train()
             # Plot and add to tensorboard
-            imgs = torch.stack([input_imgs, reconst_imgs], dim=1).flatten(0, 1)
+            imgs = torch.stack(
+                [input_imgs, reconst_imgs, label_imgs], dim=1).flatten(0, 1)
             grid = torchvision.utils.make_grid(
-                imgs, nrow=2, normalize=True, range=(-1, 1))
+                imgs, nrow=3, normalize=True, range=(-1, 1))
             trainer.logger.experiment.add_image(
                 "Reconstructions", grid, global_step=trainer.global_step)
 
@@ -70,8 +76,35 @@ def visualize_reconstructions(model, input_imgs):
     plt.show()
 
 
-def get_train_images(train_dataset, num):
-    return torch.stack([train_dataset[i][0] for i in range(num)], dim=0)
+def get_train_images(data_dir, num, transform=None, img_size=(224, 224)):
+    transform = transforms.Compose(
+        [
+            transforms.Resize(img_size),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ]) if not transform else transform
+
+    samples = os.listdir(data_dir)
+
+    train_images = []
+    label_images = []
+    pbar = tqdm(total=num, desc="Building samples for logging")
+    i = 0
+    while len(train_images) <= num:
+        if samples[i].endswith('-input.png'):
+            train_images.append(transform(Image.open(
+                os.path.join(
+                    data_dir,
+                    samples[i]
+                ))))
+            label_images.append(transform(Image.open(
+                os.path.join(
+                    data_dir,
+                    samples[i].replace('-input', '-label1')
+                ))))
+            pbar.update(1)
+        i += 1
+    return torch.stack(train_images, dim=0), torch.stack(label_images, dim=0)
 
 
 def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, validation_split=0.2, test_split=0.1):
