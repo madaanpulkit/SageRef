@@ -49,9 +49,9 @@ def main(args):
     if not os.listdir(args.data_dir):
         print(f"Downloading data to {args.data_dir}")
         download_data_from_google_drive(
-            url='https://drive.google.com/embeddedfolderview?id=1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5#list', 
+            url='https://drive.google.com/embeddedfolderview?id=1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5#list',
             data_dir=args.data_dir
-            )
+        )
     # Create out dir
     if not os.path.exists(args.data_dir):
         os.makedirs(args.out_dir)
@@ -76,52 +76,52 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='run the relection removal experiment'
-        )
+    )
     parser.add_argument(
-        '--gpu', 
-        type=int, 
+        '--gpu',
+        type=int,
         required=True,
         help='gpu id'
-        )
+    )
     parser.add_argument(
-        '--mode', 
-        required=True, 
-        choices=['train', 'eval', 'predict'], 
+        '--mode',
+        required=True,
+        choices=['train', 'eval', 'predict'],
         help='mode: [train, eval, predict]'
-        )
+    )
     parser.add_argument(
         '--epochs',
         type=int,
         default=2,
         help='number of training epochs'
-        )
+    )
     parser.add_argument(
         '--latent_dim',
         type=int,
         default=64,
         help='feature dimensions for mcr2 projection'
-        )
+    )
     parser.add_argument(
         '--out_dir',
         default=os.path.join(os.getcwd(), 'out'),
         help='output directory'
-        )
+    )
     parser.add_argument(
         '--data_dir',
         default=os.path.join(os.getcwd(), 'data'),
         help='data directory'
-        )
+    )
     parser.add_argument(
         '--split_dir',
         default=os.path.join(os.getcwd(), 'splits'),
         help='data directory'
-        )
+    )
     parser.add_argument(
         '--batch_size',
         type=int,
         default=32,
         help='batch size for training'
-        )
+    )
     parser.add_argument(
         '--learning_rate',
         type=int,

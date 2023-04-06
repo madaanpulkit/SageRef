@@ -49,7 +49,8 @@ class Autoencoder(pl.LightningModule):
         psnr = PeakSignalNoiseRatio().to(x.device)
         ssim = StructuralSimilarityIndexMeasure().to(x.device)
         try:
-            lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg", reduction='mean', normalize=True).to(x.device)
+            lpips = LearnedPerceptualImagePatchSimilarity(
+                net_type="vgg", reduction='mean', normalize=True).to(x.device)
             lpips_val = lpips(x_hat, xl)
         except Exception as e:
             # print("Error while calculating LPIPS")
