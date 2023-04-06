@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 import torchvision
 import matplotlib.pyplot as plt
-from pytorch_lightning import Callback
+from lightning.pytorch.callbacks import Callback
 import os
 import random
 import csv
