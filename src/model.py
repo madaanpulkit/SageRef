@@ -65,7 +65,7 @@ class Autoencoder(pl.LightningModule):
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=0.2, patience=20, min_lr=5e-5)
-        return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
+        return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val/loss"}
 
     def training_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
