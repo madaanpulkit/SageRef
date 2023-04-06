@@ -10,16 +10,12 @@ from src.model import Autoencoder
 from src.data import ReflectionDataModule
 
 
-def download_data_from_google_drive():
+def download_data_from_google_drive(url, data_dir):
     '''
     Downloads the dataset from the specified Google Drive folder URL in the constructor to the 
     specified data directory.
     '''
-    data_dir = os.path.join(os.getcwd(), 'data')
-    if not os.path.isdir(data_dir):
-        os.mkdir(data_dir)
 
-    url = 'https://drive.google.com/embeddedfolderview?id=1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5#list'
     soup = BeautifulSoup(requests.get(url).content, 'html.parser')
     flip_entries = soup.find_all(class_='flip-entry')
     threads = []
@@ -52,7 +48,9 @@ def main(args):
     # Download data
     if not os.listdir(args.data_dir):
         download_data_from_google_drive(
-            data_dir=args.data_dir, data_url="https://drive.google.com/drive/folders/1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5?usp=share_link")
+            url='https://drive.google.com/embeddedfolderview?id=1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5#list', 
+            data_dir=args.data_dir
+            )
     # Create out dir
     if not os.path.exists(args.data_dir):
         os.makedirs(args.out_dir)
@@ -87,34 +85,41 @@ if __name__ == "__main__":
         '--mode', 
         required=True, 
         choices=['train', 'eval', 'predict'], 
-        help='mode: [train, eval, predict]')
+        help='mode: [train, eval, predict]'
+        )
     parser.add_argument(
         '--epochs',
         type=int,
         default=100,
-        help='number of training epochs')
+        help='number of training epochs'
+        )
     parser.add_argument(
         '--latent_dim',
         type=int,
         default=512,
-        help='feature dimensions for mcr2 projection')
+        help='feature dimensions for mcr2 projection'
+        )
     parser.add_argument(
         '--out_dir',
         default=os.path.join(os.getcwd(), 'out'),
-        help='output directory')
+        help='output directory'
+        )
     parser.add_argument(
         '--data_dir',
         default=os.path.join(os.getcwd(), 'data'),
-        help='data directory')
+        help='data directory'
+        )
     parser.add_argument(
         '--split_dir',
         default=os.path.join(os.getcwd(), 'splits'),
-        help='data directory')
+        help='data directory'
+        )
     parser.add_argument(
         '--batch_size',
         type=int,
         default=32,
-        help='batch size for training')
+        help='batch size for training'
+        )
     parser.add_argument(
         '--learning_rate',
         type=int,
