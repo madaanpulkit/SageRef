@@ -3,12 +3,40 @@ SageRef: Single Image Reflection Removal
 
 
 - [SageRef](#sageref)
+- [Usage](#usage)
 - [Datasets Used](#datasets-used)
 - [Evaluation](#evaluation)
   - [Data used for evaluation](#data-used-for-evaluation)
   - [Performance Metrics](#performance-metrics)
   - [Models used for comparisons](#models-used-for-comparisons)
 
+# Usage
+
+```
+$ python main.py --help
+usage: main.py [-h] --gpu GPU --mode {train,eval,predict} [--epochs EPOCHS] [--latent_dim LATENT_DIM] [--out_dir OUT_DIR]
+               [--data_dir DATA_DIR] [--split_dir SPLIT_DIR] [--batch_size BATCH_SIZE] [--learning_rate LEARNING_RATE]
+
+run the relection removal experiment
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --gpu GPU             gpu id
+  --mode {train,eval,predict}
+                        mode: [train, eval, predict]
+  --epochs EPOCHS       number of training epochs
+  --latent_dim LATENT_DIM
+                        feature dimensions for mcr2 projection
+  --out_dir OUT_DIR     output directory
+  --data_dir DATA_DIR   data directory
+  --split_dir SPLIT_DIR
+                        data directory
+  --batch_size BATCH_SIZE
+                        batch size for training
+  --learning_rate LEARNING_RATE
+                        learning rate
+
+```
 
 # Datasets Used
 - [SIR2 Benchmark Dataset](https://rose1.ntu.edu.sg/dataset/sir2Benchmark/)
