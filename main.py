@@ -47,6 +47,7 @@ def main(args):
         os.makedirs(args.data_dir)
     # Download data
     if not os.listdir(args.data_dir):
+        print(f"Downloading data to {args.data_dir}")
         download_data_from_google_drive(
             url='https://drive.google.com/embeddedfolderview?id=1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5#list', 
             data_dir=args.data_dir
@@ -57,7 +58,7 @@ def main(args):
 
     module = Autoencoder(args.latent_dim, args.learning_rate)
     datamodule = ReflectionDataModule(
-        args.data_dir, args.split_dir, args.batch_size)
+        args.split_dir, args.data_dir, args.batch_size)
     callbacks = [ModelCheckpoint(monitor="val_loss", dirpath=args.out_dir)]
     trainer = pl.Trainer(
         max_epochs=args.epochs,
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--gpu', 
         type=int, 
-        require=True,
+        required=True,
         help='gpu id'
         )
     parser.add_argument(
@@ -91,13 +92,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--epochs',
         type=int,
-        default=100,
+        default=2,
         help='number of training epochs'
         )
     parser.add_argument(
         '--latent_dim',
         type=int,
-        default=512,
+        default=64,
         help='feature dimensions for mcr2 projection'
         )
     parser.add_argument(

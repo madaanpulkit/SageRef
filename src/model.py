@@ -1,7 +1,6 @@
 # Source: https://github.com/phlippe/uvadlc_notebooks/blob/master/docs/tutorial_notebooks/tutorial9/AE_CIFAR10.ipynb
 
-from nets import Encoder, Decoder
-import torch.nn as nn
+from src.nets import Encoder, Decoder
 import torch.nn.functional as F
 import torch
 import lightning.pytorch as pl
@@ -36,7 +35,7 @@ class Autoencoder(pl.LightningModule):
 
     def _get_reconstruction_loss(self, batch):
         """Given a batch of images, this function returns the reconstruction loss (MSE in our case)"""
-        x, _ = batch  # We do not need the labels
+        x, _, _ = batch  # We do not need the labels
         x_hat = self.forward(x)
         loss = F.mse_loss(x, x_hat, reduction="none")
         loss = loss.sum(dim=[1, 2, 3]).mean(dim=[0])
@@ -44,26 +43,26 @@ class Autoencoder(pl.LightningModule):
 
     def calc_metrics(self, batch):
         """Given a batch of images, this functions returns the PSNR, SSIM and LPIPS"""
-        x, _ = batch
+        x, xl, _ = batch
         x_hat = self.forward(x)
 
-        psnr = PeakSignalNoiseRatio()
-        ssim = StructuralSimilarityIndexMeasure()
+        psnr = PeakSignalNoiseRatio().to(x.device)
+        ssim = StructuralSimilarityIndexMeasure().to(x.device)
         try:
-            lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg", reduction='mean', normalize=True)
-            lpips_val = lpips(x_hat, x)
+            lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg", reduction='mean', normalize=True).to(x.device)
+            lpips_val = lpips(x_hat, xl)
         except Exception as e:
-            self.log("Error while calculating LPIPS")
-            self.log("Details", str(e))
+            # print("Error while calculating LPIPS")
+            # print("Details", str(e))
             lpips_val = 0
 
-        return psnr(x_hat, x), ssim(x_hat, x), lpips_val
+        return psnr(x_hat, xl), ssim(x_hat, xl), lpips_val
 
     def configure_optimizers(self):
-        optimizer = nn.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         # Using a scheduler is optional but can be helpful.
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
-        scheduler = nn.optim.lr_scheduler.ReduceLROnPlateau(
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=0.2, patience=20, min_lr=5e-5)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
 

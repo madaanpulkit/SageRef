@@ -15,22 +15,22 @@ class Encoder(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             nn.Conv2d(3, base_channel_size, kernel_size=3,
-                      padding=1, stride=2),  # 32x32 => 16x16
+                      padding=1, stride=2),  # 224x224 => 112x112
             nn.GELU(),
             nn.Conv2d(base_channel_size, base_channel_size,
                       kernel_size=3, padding=1),
             nn.GELU(),
             nn.Conv2d(base_channel_size, 2 * base_channel_size, kernel_size=3,
-                      padding=1, stride=2),  # 16x16 => 8x8
+                      padding=1, stride=2),  # 112x112 => 56x56
             nn.GELU(),
             nn.Conv2d(2 * base_channel_size, 2 * base_channel_size,
                       kernel_size=3, padding=1),
             nn.GELU(),
             nn.Conv2d(2 * base_channel_size, 2 * base_channel_size,
-                      kernel_size=3, padding=1, stride=2),  # 8x8 => 4x4
+                      kernel_size=3, padding=1, stride=2),  # 56x56 => 28x28
             nn.GELU(),
             nn.Flatten(),  # Image grid to single feature vector
-            nn.Linear(2 * 16 * base_channel_size, latent_dim),
+            nn.Linear(2 * 784 * base_channel_size, latent_dim),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -47,7 +47,7 @@ class Decoder(nn.Module):
         super().__init__()
         base_channel_size = 64
         self.linear = nn.Sequential(
-            nn.Linear(latent_dim, 2 * 16 * base_channel_size), nn.GELU())
+            nn.Linear(latent_dim, 2 * 784 * base_channel_size), nn.GELU())
         self.net = nn.Sequential(
             nn.ConvTranspose2d(
                 2 * base_channel_size, 2 * base_channel_size, kernel_size=3, output_padding=1, padding=1, stride=2
@@ -70,6 +70,15 @@ class Decoder(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.linear(x)
-        x = x.reshape(x.shape[0], -1, 4, 4)
+        x = x.reshape(x.shape[0], -1, 28, 28)
         x = self.net(x)
+        return x
+
+class PrintLayer(nn.Module):
+    def __init__(self):
+        super(PrintLayer, self).__init__()
+    
+    def forward(self, x):
+        # Do your print / debug stuff here
+        print("--------\n", x.shape, "\n--------")
         return x
