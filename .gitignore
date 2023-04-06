@@ -133,8 +133,10 @@ dmypy.json
 src/.DS_Store
 
 # data
-src/data
-data
+data/
+
+# outputs
+out/
 
 # IDE stuff
 .vscode/
