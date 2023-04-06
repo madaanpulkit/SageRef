@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import lightning as L
+from torchmetrics import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
+from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
 
 
 class Autoencoder(L.LightningModule):
@@ -39,6 +41,23 @@ class Autoencoder(L.LightningModule):
         loss = loss.sum(dim=[1, 2, 3]).mean(dim=[0])
         return loss
 
+    def calc_metrics(self, batch):
+        """Given a batch of images, this functions returns the PSNR, SSIM and LPIPS"""
+        x, _ = batch
+        x_hat = self.forward(x)
+
+        psnr = PeakSignalNoiseRatio()
+        ssim = StructuralSimilarityIndexMeasure()
+        try:
+            lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg", reduction='mean', normalize=True)
+            lpips_val = lpips(x_hat, x)
+        except Exception as e:
+            self.log("Error while calculating LPIPS")
+            self.log("Details", str(e))
+            lpips_val = 0
+
+        return psnr(x_hat, x), ssim(x_hat, x), lpips_val
+
     def configure_optimizers(self):
         optimizer = nn.optim.Adam(self.parameters(), lr=1e-3)
         # Using a scheduler is optional but can be helpful.
@@ -59,3 +78,7 @@ class Autoencoder(L.LightningModule):
     def test_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
         self.log("test_loss", loss)
+        psnr, ssim, lpips = self.calc_metrics(batch)
+        self.log("psnr", psnr)
+        self.log("ssim", ssim)
+        self.log("lpips", lpips)
