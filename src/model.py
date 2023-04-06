@@ -4,15 +4,16 @@ from nets import Encoder, Decoder
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-import lightning as L
+import lightning.pytorch as pl
 from torchmetrics import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
 
 
-class Autoencoder(L.LightningModule):
+class Autoencoder(pl.LightningModule):
     def __init__(
         self,
         latent_dim: int,
+        lr: float = 1e-3,
         width: int = 224,
         height: int = 224,
     ):
@@ -24,6 +25,8 @@ class Autoencoder(L.LightningModule):
         self.decoder = Decoder(latent_dim)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(2, 3, width, height)
+        # Learning rate
+        self.lr = lr
 
     def forward(self, x):
         """The forward function takes in an image and returns the reconstructed image."""
@@ -57,7 +60,7 @@ class Autoencoder(L.LightningModule):
         return psnr(x_hat, x), ssim(x_hat, x), lpips_val
 
     def configure_optimizers(self):
-        optimizer = nn.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = nn.optim.Adam(self.parameters(), lr=self.lr)
         # Using a scheduler is optional but can be helpful.
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
         scheduler = nn.optim.lr_scheduler.ReduceLROnPlateau(
@@ -67,11 +70,19 @@ class Autoencoder(L.LightningModule):
     def training_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
         self.log("train_loss", loss)
+        psnr, ssim, lpips = self.calc_metrics(batch)
+        self.log("psnr", psnr)
+        self.log("ssim", ssim)
+        self.log("lpips", lpips)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
         self.log("val_loss", loss)
+        psnr, ssim, lpips = self.calc_metrics(batch)
+        self.log("psnr", psnr)
+        self.log("ssim", ssim)
+        self.log("lpips", lpips)
 
     def test_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
