@@ -69,27 +69,37 @@ class Autoencoder(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
-        self.log("train/loss", loss, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/loss", loss, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
         psnr, ssim, lpips = self.calc_metrics(batch)
-        self.log("train/psnr", psnr, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/ssim", ssim, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train/lpips", lpips, on_epoch=True,
-                 prog_bar=True, logger=True)
+        self.log("train/psnr", psnr, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/ssim", ssim, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/lpips", lpips, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
-        self.log("val/loss", loss, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/loss", loss, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
         psnr, ssim, lpips = self.calc_metrics(batch)
-        self.log("val/psnr", psnr, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val/ssim", ssim, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val/lpips", lpips, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/psnr", psnr, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/ssim", ssim, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/lpips", lpips, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
-        self.log("test/loss", loss, on_epoch=True, prog_bar=True, logger=True)
+        self.log("test/loss", loss, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
         psnr, ssim, lpips = self.calc_metrics(batch)
-        self.log("test/psnr", psnr, on_epoch=True, prog_bar=True, logger=True)
-        self.log("test/ssim", ssim, on_epoch=True, prog_bar=True, logger=True)
-        self.log("test/lpips", lpips, on_epoch=True,
-                 prog_bar=True, logger=True)
+        self.log("test/psnr", psnr, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+        self.log("test/ssim", ssim, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
+        self.log("test/lpips", lpips, on_step=False,
+                 on_epoch=True, prog_bar=True, logger=True)
