@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 from PIL import Image
-from utils import read_data_splits
+from src.utils import read_data_splits
 
 
 class ReflectionDataset(Dataset):
@@ -20,9 +20,9 @@ class ReflectionDataset(Dataset):
         dict: A dictionary containing 'input', 'label1', and 'label2'. The values are the transformed input image and corresponding label images.
     '''
 
-    def __init__(self, data_dir, split_file, transform=None, img_size=(224, 224)):
-        self.data_dir = data_dir
+    def __init__(self, split_file, data_dir, transform=None, img_size=(224, 224)):
         self.split_file = split_file
+        self.data_dir = data_dir
         self.filenames = [filename for filename in read_data_splits(
             split_file) if filename.endswith('-input.png')]
         self.transform = transforms.Compose(
@@ -67,23 +67,22 @@ class ReflectionDataModule(pl.LightningDataModule):
         num_workers (int)(Default: 4): The number of workers to use for the data loaders.
     '''
 
-    def __init__(self, split_dir, data_dir, batch_size=32, num_workers=4):
+    def __init__(self, split_dir, data_dir, batch_size=32):
         super().__init__()
-        self.data_dir = data_dir
         self.split_dir = split_dir
+        self.data_dir = data_dir
         self.batch_size = batch_size
-        self.num_workers = num_workers
 
-    def setup(self):
+    def setup(self, stage=None):
         '''
         Performs the initialization of the dataset
         '''
         self.train_dataset = ReflectionDataset(
-            self.data_dir, os.path.join(self.split_sir, "train.csv"))
+            os.path.join(self.split_dir, "train.csv"), self.data_dir)
         self.val_dataset = ReflectionDataset(
-            self.data_dir, os.path.join(self.split_sir, "val.csv"))
+            os.path.join(self.split_dir, "val.csv"), self.data_dir)
         self.test_dataset = ReflectionDataset(
-            self.data_dir, os.path.join(self.split_sir, "test.csv"))
+            os.path.join(self.split_dir, "test.csv"), self.data_dir)
 
     def collate_fn(self, batch):
         batch = list(filter(lambda x: x is not None, batch))
@@ -93,15 +92,15 @@ class ReflectionDataModule(pl.LightningDataModule):
         '''
         Returns Lightning data loader for the training dataset
         '''
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, shuffle=True)
 
     def val_dataloader(self):
         '''Returns Lightning data loader for the training dataset'''
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, num_workers=self.num_workers)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
 
     def test_dataloader(self):
         '''Returns Lightning data loader for the training dataset'''
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, num_workers=self.num_workers)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
 
 
 class InvalidSplitsError(Exception):

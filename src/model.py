@@ -1,20 +1,18 @@
 # Source: https://github.com/phlippe/uvadlc_notebooks/blob/master/docs/tutorial_notebooks/tutorial9/AE_CIFAR10.ipynb
 
-from nets import Encoder, Decoder
-import torch.nn as nn
+from src.nets import Encoder, Decoder
 import torch.nn.functional as F
 import torch
-import lightning as L
+import lightning.pytorch as pl
 from torchmetrics import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
 
 
-class Autoencoder(L.LightningModule):
+class Autoencoder(pl.LightningModule):
     def __init__(
         self,
         latent_dim: int,
-        encoder_class: nn.Module = Encoder,
-        decoder_class: nn.Module = Decoder,
+        lr: float = 1e-3,
         width: int = 224,
         height: int = 224,
     ):
@@ -22,10 +20,12 @@ class Autoencoder(L.LightningModule):
         # Saving hyperparameters of autoencoder
         self.save_hyperparameters()
         # Creating encoder and decoder
-        self.encoder = encoder_class(latent_dim)
-        self.decoder = decoder_class(latent_dim)
+        self.encoder = Encoder(latent_dim)
+        self.decoder = Decoder(latent_dim)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(2, 3, width, height)
+        # Learning rate
+        self.lr = lr
 
     def forward(self, x):
         """The forward function takes in an image and returns the reconstructed image."""
@@ -35,7 +35,7 @@ class Autoencoder(L.LightningModule):
 
     def _get_reconstruction_loss(self, batch):
         """Given a batch of images, this function returns the reconstruction loss (MSE in our case)"""
-        x, _ = batch  # We do not need the labels
+        x, _, _ = batch  # We do not need the labels
         x_hat = self.forward(x)
         loss = F.mse_loss(x, x_hat, reduction="none")
         loss = loss.sum(dim=[1, 2, 3]).mean(dim=[0])
@@ -43,37 +43,46 @@ class Autoencoder(L.LightningModule):
 
     def calc_metrics(self, batch):
         """Given a batch of images, this functions returns the PSNR, SSIM and LPIPS"""
-        x, _ = batch
+        x, xl, _ = batch
         x_hat = self.forward(x)
 
-        psnr = PeakSignalNoiseRatio()
-        ssim = StructuralSimilarityIndexMeasure()
+        psnr = PeakSignalNoiseRatio().to(x.device)
+        ssim = StructuralSimilarityIndexMeasure().to(x.device)
         try:
-            lpips = LearnedPerceptualImagePatchSimilarity(net_type="vgg", reduction='mean', normalize=True)
-            lpips_val = lpips(x_hat, x)
+            lpips = LearnedPerceptualImagePatchSimilarity(
+                net_type="vgg", reduction='mean', normalize=True).to(x.device)
+            lpips_val = lpips(x_hat, xl)
         except Exception as e:
-            self.log("Error while calculating LPIPS")
-            self.log("Details", str(e))
+            # print("Error while calculating LPIPS")
+            # print("Details", str(e))
             lpips_val = 0
 
-        return psnr(x_hat, x), ssim(x_hat, x), lpips_val
+        return psnr(x_hat, xl), ssim(x_hat, xl), lpips_val
 
     def configure_optimizers(self):
-        optimizer = nn.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         # Using a scheduler is optional but can be helpful.
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
-        scheduler = nn.optim.lr_scheduler.ReduceLROnPlateau(
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=0.2, patience=20, min_lr=5e-5)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
 
     def training_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
         self.log("train_loss", loss)
+        psnr, ssim, lpips = self.calc_metrics(batch)
+        self.log("psnr", psnr)
+        self.log("ssim", ssim)
+        self.log("lpips", lpips)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
         self.log("val_loss", loss)
+        psnr, ssim, lpips = self.calc_metrics(batch)
+        self.log("psnr", psnr)
+        self.log("ssim", ssim)
+        self.log("lpips", lpips)
 
     def test_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
