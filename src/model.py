@@ -13,8 +13,6 @@ class Autoencoder(L.LightningModule):
     def __init__(
         self,
         latent_dim: int,
-        encoder_class: nn.Module = Encoder,
-        decoder_class: nn.Module = Decoder,
         width: int = 224,
         height: int = 224,
     ):
@@ -22,8 +20,8 @@ class Autoencoder(L.LightningModule):
         # Saving hyperparameters of autoencoder
         self.save_hyperparameters()
         # Creating encoder and decoder
-        self.encoder = encoder_class(latent_dim)
-        self.decoder = decoder_class(latent_dim)
+        self.encoder = Encoder(latent_dim)
+        self.decoder = Decoder(latent_dim)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(2, 3, width, height)
 
