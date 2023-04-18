@@ -78,6 +78,11 @@ def main(args):
 
     if args.mode == "train":
         trainer.fit(module, datamodule)
+        trainer.test(module, datamodule)
+    elif args.mode == "test":
+        trainer.test(module, datamodule)
+    elif args.mode == "predict":
+        trainer.predict(module, datamodule)
 
 
 if __name__ == "__main__":
@@ -93,8 +98,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--mode',
         required=True,
-        choices=['train', 'eval', 'predict'],
-        help='mode: [train, eval, predict]'
+        choices=['train', 'test', 'predict'],
+        help='mode: [train, test, predict]'
     )
     parser.add_argument(
         '--epochs',
