@@ -107,10 +107,11 @@ class ReflectionDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         '''Returns Lightning data loader for the test dataset'''
         return DataLoader(self.test_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
-    
+
     def predict_dataloader(self):
         '''Returns Lightning data loader for the predict dataset'''
         return DataLoader(self.predict_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
+
 
 class InvalidSplitsError(Exception):
     pass
