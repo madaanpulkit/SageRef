@@ -86,6 +86,7 @@ def main(args):
         module.load_from_checkpoint(args.ckpt_path)
         trainer.predict(module, datamodule)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='run the relection removal experiment'
