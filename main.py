@@ -21,7 +21,7 @@ def download_data_from_google_drive(data_dir):
     folder_ids = {'CEILNET': '1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5',
                   'SIR2': '1c8BKPk1y6aJ84EBIeQEevpdFs-AjZxIb'}
     need_to_download = check_for_data_folder_downloads(data_dir)
-    
+
     for folder_name in need_to_download:
         folder_path = os.path.join(data_dir, folder_name)
         download_folder(folder_path, folder_ids[folder_name])
