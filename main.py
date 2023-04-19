@@ -78,7 +78,13 @@ def main(args):
 
     if args.mode == "train":
         trainer.fit(module, datamodule)
-
+        trainer.test(module, datamodule)
+    elif args.mode == "test":
+        module.load_from_checkpoint(args.ckpt_path)
+        trainer.test(module, datamodule)
+    elif args.mode == "predict":
+        module.load_from_checkpoint(args.ckpt_path)
+        trainer.predict(module, datamodule)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -93,8 +99,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--mode',
         required=True,
-        choices=['train', 'eval', 'predict'],
-        help='mode: [train, eval, predict]'
+        choices=['train', 'test', 'predict'],
+        help='mode: [train, test, predict]'
     )
     parser.add_argument(
         '--epochs',
@@ -106,7 +112,7 @@ if __name__ == "__main__":
         '--latent_dim',
         type=int,
         default=64,
-        help='feature dimensions for mcr2 projection'
+        help='feature dimensions for latent space'
     )
     parser.add_argument(
         '--out_dir',
@@ -124,6 +130,10 @@ if __name__ == "__main__":
         help='data directory'
     )
     parser.add_argument(
+        '--ckpt_path',
+        help='checkpoint path'
+    )
+    parser.add_argument(
         '--batch_size',
         type=int,
         default=32,
@@ -131,7 +141,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '--learning_rate',
-        type=int,
+        type=float,
         default=1e-3,
         help='learning rate')
 
