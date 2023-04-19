@@ -55,7 +55,8 @@ class Autoencoder(pl.LightningModule):
         return psnr(x_hat, xl), ssim(x_hat, xl), lpips_val
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, betas=(0.5, 0.999))
+        optimizer = torch.optim.Adam(
+            self.parameters(), lr=self.lr, betas=(0.5, 0.999))
         # Using a scheduler is optional but can be helpful.
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
