@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import shutil
 import threading
 import argparse
+import sys
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from src.model import Autoencoder
@@ -12,31 +13,82 @@ from src.utils import GenerateCallback
 from src.utils import get_train_images
 
 
-def download_data_from_google_drive(url, data_dir):
+def download_data_from_google_drive(data_dir):
     '''
     Downloads the dataset from the specified Google Drive folder URL in the constructor to the 
     specified data directory.
     '''
+    folder_ids = {'CEILNET': '1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5',
+                  'SIR2': '1c8BKPk1y6aJ84EBIeQEevpdFs-AjZxIb'}
+    need_to_download = check_for_data_folder_downloads(data_dir)
+    
+    for folder_name in need_to_download:
+        folder_path = os.path.join(data_dir, folder_name)
+        download_folder(folder_path, folder_ids[folder_name])
 
-    soup = BeautifulSoup(requests.get(url).content, 'html.parser')
+
+def check_for_data_folder_downloads(data_dir):
+    '''
+        Determines the data folders that are missing and returns a list with their names.
+        Args:
+            data_dir (string): directory path to where the datasets are stored
+        Returns:
+            list: contains names of the datasets
+    '''
+    folder_names = ['CEILNET', 'SIR2']
+    def validate_dir(path): return os.path.isdir(path) and os.listdir(path)
+    need_to_download = [dirname for dirname in folder_names if not validate_dir(
+        os.path.join(data_dir, dirname))]
+    return need_to_download
+
+
+def download_folder(folder_path, folder_id, batch_size=100, num_threads=20):
+    '''
+        Downloads a google drive folder by utilizing threads.
+        Args:
+            folder_path (string): directory path to where folder will be downloaded
+            folder_id (string): google drive folder id
+            batch_size (int): number of files to be grouped together and assigned to a thread
+            num_threads (int)
+        Returns:
+            list: contains names of the datasets
+
+    '''
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
+    url = f'https://drive.google.com/embeddedfolderview?id={folder_id}#list'
+    soup = BeautifulSoup(requests.get(
+        url, verify=True).content, 'html.parser')
     flip_entries = soup.find_all(class_='flip-entry')
-    threads = []
-    for entry in flip_entries:
-        file_id = entry.get('id').replace('entry-', '')
-        title = entry.find(
-            class_='flip-entry-title').encode_contents().decode()
-        file_dir = os.path.join(data_dir, title)
-        thread = threading.Thread(
-            target=download_file, args=(file_id, file_dir))
-        thread.start()
-        threads.append(thread)
 
-    # Wait for all threads to finish
-    for thread in threads:
-        thread.join()
+    for i in range(0, len(flip_entries), batch_size):
+        entries = flip_entries[i: i + batch_size]
+        batches = [entries[j:j+num_threads]
+                   for j in range(0, len(entries), num_threads)]
+
+        for batch in batches:
+            threads = []
+            for entry in batch:
+                file_id = entry.get('id').replace('entry-', '')
+                title = entry.find(
+                    class_='flip-entry-title').encode_contents().decode()
+                file_dir = os.path.join(folder_path, title)
+                t = threading.Thread(
+                    target=download_file, args=(file_id, file_dir))
+                t.start()
+                threads.append(t)
+
+            for t in threads:
+                t.join()
 
 
 def download_file(file_id, file_dir):
+    '''
+    Downloads a google drive file
+        Args:
+            file_id (string): google drive file id
+            file_dir (string): path to where file will be saved
+    '''
     r = requests.get(
         f'https://drive.google.com/uc?export=download&id={file_id}', stream=True)
     with open(file_dir, 'wb') as f:
@@ -47,15 +99,18 @@ def main(args):
     # Create data dir
     if not os.path.exists(args.data_dir):
         os.makedirs(args.data_dir)
+
     # Download data
-    if not os.listdir(args.data_dir):
+    if args.mode == 'download' and check_for_data_folder_downloads(args.data_dir):
         print(f"Downloading data to {args.data_dir}")
         download_data_from_google_drive(
-            url='https://drive.google.com/embeddedfolderview?id=1kNnCS58dCcHsZVS2dDyDmxugcxLSuPF5#list',
             data_dir=args.data_dir
         )
+        print(f"Data downloaded at {args.data_dir}")
+        sys.exit(0)
+
     # Create out dir
-    if not os.path.exists(args.data_dir):
+    if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 
     module = Autoencoder(args.latent_dim, args.learning_rate)
@@ -100,8 +155,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--mode',
         required=True,
-        choices=['train', 'test', 'predict'],
-        help='mode: [train, test, predict]'
+        choices=['train', 'eval', 'predict', 'download'],
+        help='mode: [train, eval, predict, download]'
     )
     parser.add_argument(
         '--epochs',
