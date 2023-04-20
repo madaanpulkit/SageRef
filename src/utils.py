@@ -168,11 +168,11 @@ def read_data_splits(split_file_path):
 def predict(module, img):
 
     transform = transforms.Compose(
-                [
-                    transforms.Resize((224, 224)),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.5,), (0.5,))
-                ])
+        [
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
 
     inp = transform(img).unsqueeze(0)
 
