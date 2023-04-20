@@ -6,7 +6,7 @@ SageRef: Single Image Reflection Removal
 - [Usage](#usage)
 - [Datasets Used](#datasets-used)
 - [Evaluation](#evaluation)
-  - [Data used for evaluation](#data-used-for-evaluation)
+  - [Predictions](#predictions)
   - [Performance Metrics](#performance-metrics)
   - [Models used for comparisons](#models-used-for-comparisons)
 
@@ -45,8 +45,12 @@ optional arguments:
 
 # Evaluation
 
-## Data used for evaluation
-#TODO
+## Predictions
+    
+    # run the following code after defining img_path and module
+    from src.utils import predict
+    img = Image.open(img_path)
+    predict(module, img)
 
 ## Performance Metrics
 - PSNR (Peak Signal-to-Noise Ratio): `torchmetrics.PeakSignalNoiseRatio`
