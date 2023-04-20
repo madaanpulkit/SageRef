@@ -165,6 +165,22 @@ def read_data_splits(split_file_path):
     return [row[0] for row in file_to_split]
 
 
+def predict(module, img):
+
+    transform = transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+
+    inp = transform(img).unsqueeze(0)
+
+    outp = module(inp)
+
+    return transforms.ToPILImage()(outp[0])
+
+
 if __name__ == "__main__":
     '''train_dataset = CIFAR10(root=DATASET_PATH, train=True,
                             transform=transform, download=True)
