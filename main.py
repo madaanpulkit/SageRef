@@ -10,7 +10,7 @@ from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from src.model import Autoencoder
 from src.data import ReflectionDataModule
 from src.utils import GenerateCallback
-from src.utils import get_train_images
+from src.utils import get_mix_images
 
 
 def download_data_from_google_drive(data_dir):
@@ -120,8 +120,14 @@ def main(args):
         ModelCheckpoint(dirpath=args.out_dir),
         ModelCheckpoint(monitor="val/loss",
                         dirpath=args.out_dir, filename="best"),
-        GenerateCallback(get_train_images(
-            args.data_dir, 4), every_n_epochs=10),
+        GenerateCallback(
+            get_mix_images(
+                split_dir=args.split_dir,
+                data_dir=args.data_dir,
+                num_images=2
+            ),
+            every_n_epochs=10
+        ),
         LearningRateMonitor("epoch")]
     trainer = pl.Trainer(
         max_epochs=args.epochs,
@@ -139,6 +145,7 @@ def main(args):
         trainer.test(module, datamodule)
     elif args.mode == "predict":
         module.load_from_checkpoint(args.ckpt_path)
+        callbacks[1]
         trainer.predict(module, datamodule)
 
 

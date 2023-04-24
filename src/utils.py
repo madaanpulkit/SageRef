@@ -76,7 +76,7 @@ def visualize_reconstructions(model, input_imgs):
     plt.show()
 
 
-def get_train_images(data_dir, num, transform=None, img_size=(224, 224)):
+def get_mix_images(split_dir, data_dir, num_images, transform=None, img_size=(224, 224)):
     transform = transforms.Compose(
         [
             transforms.Resize(img_size),
@@ -84,27 +84,21 @@ def get_train_images(data_dir, num, transform=None, img_size=(224, 224)):
             transforms.Normalize((0.5,), (0.5,))
         ]) if not transform else transform
 
-    samples = os.listdir(data_dir)
+    samples =   open(os.path.join(split_dir, "train.csv")).read().splitlines()[:num_images*3] + \
+                open(os.path.join(split_dir, "val.csv")).read().splitlines()[:num_images*3] + \
+                open(os.path.join(split_dir, "test.csv")).read().splitlines()[:num_images*3]
 
-    train_images = []
-    label_images = []
-    pbar = tqdm(total=num, desc="Building samples for logging")
+    images = []
+    labels = []
+    pbar = tqdm(total=num_images, desc="Building samples for logging")
     i = 0
-    while len(train_images) <= num:
-        if samples[i].endswith('-input.png'):
-            train_images.append(transform(Image.open(
-                os.path.join(
-                    data_dir,
-                    samples[i]
-                ))))
-            label_images.append(transform(Image.open(
-                os.path.join(
-                    data_dir,
-                    samples[i].replace('-input', '-label1')
-                ))))
+    for fn in samples:
+        if fn.endswith('-input.png'):
+            fp = os.path.join(data_dir, fn)
+            images.append(transform(Image.open(fp)))
+            labels.append(transform(Image.open(fp.replace("-input", "-label1"))))
             pbar.update(1)
-        i += 1
-    return torch.stack(train_images, dim=0), torch.stack(label_images, dim=0)
+    return torch.stack(images, dim=0), torch.stack(labels, dim=0)
 
 
 def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, validation_split=0.2, test_split=0.1):
