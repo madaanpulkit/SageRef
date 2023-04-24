@@ -6,6 +6,7 @@ import threading
 import argparse
 import sys
 import lightning.pytorch as pl
+from tqdm.auto import tqdm
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from src.model import Autoencoder
 from src.data import ReflectionDataModule
@@ -23,6 +24,7 @@ def download_data_from_google_drive(data_dir):
     need_to_download = check_for_data_folder_downloads(data_dir)
 
     for folder_name in need_to_download:
+        print(f"{folder_name} ...")
         folder_path = os.path.join(data_dir, folder_name)
         download_folder(folder_path, folder_ids[folder_name])
 
@@ -61,12 +63,12 @@ def download_folder(folder_path, folder_id, batch_size=100, num_threads=20):
         url, verify=True).content, 'html.parser')
     flip_entries = soup.find_all(class_='flip-entry')
 
-    for i in range(0, len(flip_entries), batch_size):
+    for i in tqdm(range(0, len(flip_entries), batch_size)):
         entries = flip_entries[i: i + batch_size]
         batches = [entries[j:j+num_threads]
                    for j in range(0, len(entries), num_threads)]
 
-        for batch in batches:
+        for batch in tqdm(batches):
             threads = []
             for entry in batch:
                 file_id = entry.get('id').replace('entry-', '')

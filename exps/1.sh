@@ -8,8 +8,9 @@ nohup python main.py \
     --batch_size 16 \
     --latent_dim 128 \
     --learning_rate 0.00005 \
-    --out_dir out/.00005lr_1000ep_128dim_16bs \
-&> out/exp0_.0005lr_1000ep_128dim_16bs.out &
+    --data_dir data/CEILNET \
+    --out_dir out/ceil_.00005lr_1000ep_128dim_16bs \
+&> out/exp1_ceil_.0005lr_1000ep_128dim_16bs.out &
 
 # Run 1: Reduced LR, Reduced batch size, High Epochs, Higher Dim
 nohup python main.py \
@@ -19,5 +20,6 @@ nohup python main.py \
     --batch_size 16 \
     --latent_dim 512 \
     --learning_rate 0.00005 \
-    --out_dir out/.00005lr_1000ep_512dim_16bs \
-&> out/exp0_.0005lr_1000ep_128dim_16bs.out &
+    --data_dir data/CEILNET \
+    --out_dir out/ceil_.00005lr_1000ep_512dim_16bs \
+&> out/exp1_ceil_.0005lr_1000ep_512dim_16bs.out &
