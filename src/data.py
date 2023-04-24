@@ -87,6 +87,8 @@ class ReflectionDataModule(pl.LightningDataModule):
             os.path.join(self.split_dir, "val.csv"), self.data_dir)
         self.test_dataset = ReflectionDataset(
             os.path.join(self.split_dir, "test.csv"), self.data_dir)
+        self.predict_dataset = ReflectionDataset(
+            os.path.join(self.split_dir, "val.csv"), self.data_dir)
 
     def collate_fn(self, batch):
         batch = list(filter(lambda x: x is not None, batch))
@@ -99,12 +101,16 @@ class ReflectionDataModule(pl.LightningDataModule):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn, shuffle=True)
 
     def val_dataloader(self):
-        '''Returns Lightning data loader for the training dataset'''
+        '''Returns Lightning data loader for the validation dataset'''
         return DataLoader(self.val_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
 
     def test_dataloader(self):
-        '''Returns Lightning data loader for the training dataset'''
+        '''Returns Lightning data loader for the test dataset'''
         return DataLoader(self.test_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
+
+    def predict_dataloader(self):
+        '''Returns Lightning data loader for the predict dataset'''
+        return DataLoader(self.predict_dataset, batch_size=self.batch_size, collate_fn=self.collate_fn)
 
 
 class InvalidSplitsError(Exception):
