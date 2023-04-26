@@ -156,7 +156,7 @@ if __name__ == "__main__":
         '--mode',
         required=True,
         choices=['train', 'test', 'predict', 'download'],
-        help='mode: [train, test, predict, 'download']'
+        help='mode: [train, test, predict, download]'
     )
     parser.add_argument(
         '--epochs',
