@@ -60,7 +60,7 @@ class Autoencoder(pl.LightningModule):
         # Using a scheduler is optional but can be helpful.
         # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode="min", factor=0.2, patience=10, min_lr=5e-5)
+            optimizer, mode="min", factor=0.2, patience=10, min_lr=5e-6)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val/loss"}
 
     def training_step(self, batch, batch_idx):
@@ -105,3 +105,8 @@ class Autoencoder(pl.LightningModule):
                  on_epoch=True, prog_bar=True, logger=True)
         self.log("test/lpips", lpips, on_step=False,
                  on_epoch=True, prog_bar=True, logger=True)
+
+    def predict_step(self, batch, batch_idx):
+        x, xl, _ = batch  # We do not need the labels
+        x_hat = self(x)
+        return x_hat, x

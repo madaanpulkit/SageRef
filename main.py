@@ -6,11 +6,12 @@ import threading
 import argparse
 import sys
 import lightning.pytorch as pl
+from tqdm.auto import tqdm
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from src.model import Autoencoder
 from src.data import ReflectionDataModule
 from src.utils import GenerateCallback
-from src.utils import get_train_images
+from src.utils import get_mix_images
 
 
 def download_data_from_google_drive(data_dir):
@@ -23,6 +24,7 @@ def download_data_from_google_drive(data_dir):
     need_to_download = check_for_data_folder_downloads(data_dir)
 
     for folder_name in need_to_download:
+        print(f"{folder_name} ...")
         folder_path = os.path.join(data_dir, folder_name)
         download_folder(folder_path, folder_ids[folder_name])
 
@@ -61,12 +63,12 @@ def download_folder(folder_path, folder_id, batch_size=100, num_threads=20):
         url, verify=True).content, 'html.parser')
     flip_entries = soup.find_all(class_='flip-entry')
 
-    for i in range(0, len(flip_entries), batch_size):
+    for i in tqdm(range(0, len(flip_entries), batch_size)):
         entries = flip_entries[i: i + batch_size]
         batches = [entries[j:j+num_threads]
                    for j in range(0, len(entries), num_threads)]
 
-        for batch in batches:
+        for batch in tqdm(batches):
             threads = []
             for entry in batch:
                 file_id = entry.get('id').replace('entry-', '')
@@ -120,8 +122,14 @@ def main(args):
         ModelCheckpoint(dirpath=args.out_dir),
         ModelCheckpoint(monitor="val/loss",
                         dirpath=args.out_dir, filename="best"),
-        GenerateCallback(get_train_images(
-            args.data_dir, 4), every_n_epochs=10),
+        GenerateCallback(
+            get_mix_images(
+                split_dir=args.split_dir,
+                data_dir=args.data_dir,
+                num_images=2
+            ),
+            every_n_epochs=10
+        ),
         LearningRateMonitor("epoch")]
     trainer = pl.Trainer(
         max_epochs=args.epochs,
@@ -139,6 +147,7 @@ def main(args):
         trainer.test(module, datamodule)
     elif args.mode == "predict":
         module.load_from_checkpoint(args.ckpt_path)
+        callbacks[1]
         trainer.predict(module, datamodule)
 
 

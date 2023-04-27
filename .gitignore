@@ -134,11 +134,12 @@ src/.DS_Store
 
 # data
 data/
-data/SIR2/
-data/CEILNET/
 
 # outputs
 out/
 
 # IDE stuff
 .vscode/
+
+# Scratch
+*scratch*
