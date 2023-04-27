@@ -109,4 +109,4 @@ class Autoencoder(pl.LightningModule):
     def predict_step(self, batch, batch_idx):
         x, xl, _ = batch  # We do not need the labels
         x_hat = self(x)
-        return x_hat, x                     
+        return x_hat, x

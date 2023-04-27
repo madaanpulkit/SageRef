@@ -84,9 +84,10 @@ def get_mix_images(split_dir, data_dir, num_images, transform=None, img_size=(22
             transforms.Normalize((0.5,), (0.5,))
         ]) if not transform else transform
 
-    samples =   open(os.path.join(split_dir, "train.csv")).read().splitlines()[:num_images*3] + \
-                open(os.path.join(split_dir, "val.csv")).read().splitlines()[:num_images*3] + \
-                open(os.path.join(split_dir, "test.csv")).read().splitlines()[:num_images*3]
+    samples = open(os.path.join(split_dir, "train.csv")).read().splitlines()[:num_images*3] + \
+        open(os.path.join(split_dir, "val.csv")).read().splitlines()[:num_images*3] + \
+        open(os.path.join(split_dir, "test.csv")
+             ).read().splitlines()[:num_images*3]
 
     images = []
     labels = []
@@ -96,7 +97,8 @@ def get_mix_images(split_dir, data_dir, num_images, transform=None, img_size=(22
         if fn.endswith('-input.png'):
             fp = os.path.join(data_dir, fn)
             images.append(transform(Image.open(fp)))
-            labels.append(transform(Image.open(fp.replace("-input", "-label1"))))
+            labels.append(transform(Image.open(
+                fp.replace("-input", "-label1"))))
             pbar.update(1)
     return torch.stack(images, dim=0), torch.stack(labels, dim=0)
 
