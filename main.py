@@ -164,8 +164,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--mode',
         required=True,
-        choices=['train', 'eval', 'predict', 'download'],
-        help='mode: [train, eval, predict, download]'
+        choices=['train', 'test', 'predict', 'download'],
+        help='mode: [train, test, predict, download]'
     )
     parser.add_argument(
         '--epochs',

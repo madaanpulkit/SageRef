@@ -84,7 +84,7 @@ class ReflectionDataModule(pl.LightningDataModule):
         self.train_dataset = ReflectionDataset(
             os.path.join(self.split_dir, "train.csv"), self.data_dir)
         self.predict_dataset = ReflectionDataset(
-            os.path.join(self.split_dir, "train.csv"), self.data_dir)
+            os.path.join(self.split_dir, "val.csv"), self.data_dir)
         self.val_dataset = ReflectionDataset(
             os.path.join(self.split_dir, "val.csv"), self.data_dir)
         self.test_dataset = ReflectionDataset(

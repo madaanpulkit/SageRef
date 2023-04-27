@@ -62,3 +62,6 @@ optional arguments:
 - "Trash or Treasure? An Interactive Dual-Stream Strategy for Single Image Reflection Separation" (NeurIPS 2021) ([pdf](https://proceedings.neurips.cc/paper/2021/file/cf1f78fe923afe05f7597da2be7a3da8-Paper.pdf), [github](https://github.com/mingcv/ytmt-strategy))
 - "Single Image Reflection Removal Exploiting Misaligned Training Data and Network Enhancements" (CVPR 2019) ([pdf](https://openaccess.thecvf.com/content_CVPR_2019/papers/Wei_Single_Image_Reflection_Removal_Exploiting_Misaligned_Training_Data_and_Network_CVPR_2019_paper.pdf),[github](https://github.com/Vandermode/ERRNet))
 - "Single Image Reflection Removal with Perceptual Losses" (CVPR 2018) ([pdf](https://openaccess.thecvf.com/content_cvpr_2018/papers/Zhang_Single_Image_Reflection_CVPR_2018_paper.pdf), [github](https://github.com/ceciliavision/perceptual-reflection-removal))
+
+# Acknowledgement
+The network architecture and the codebase is based on Phillip Lippe's UvA Deep Learning [Tutorial 9: Deep Autoencoders](https://github.com/phlippe/uvadlc_notebooks/blob/master/docs/tutorial_notebooks/tutorial9/AE_CIFAR10.ipynb)

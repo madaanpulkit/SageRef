@@ -110,4 +110,3 @@ class Autoencoder(pl.LightningModule):
         x, xl, _ = batch  # We do not need the labels
         x_hat = self(x)
         return x_hat, x                     
-

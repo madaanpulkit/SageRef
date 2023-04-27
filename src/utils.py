@@ -113,7 +113,7 @@ def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, valida
             f"The provided data split percentages {splits} needs to add up to 1.0")
     split_dict = {'train': [], 'validation': [], 'test': []}
     input_files = [filename for filename in os.listdir(
-        data_dir_path) if filename.endswith('-input.png')]
+        data_dir_path) if '-input' in filename]
     num_samples = len(input_files)
     random.shuffle(input_files)
     train_size = int(num_samples * train_split)
@@ -140,7 +140,7 @@ def generate_data_splits(data_dir_path, output_dir_path, train_split=0.7, valida
         writer = csv.writer(f)
         for file_name in split_dict['train']:
             writer.writerow([file_name])
-    with open(os.path.join(output_dir_path, 'validation.csv'), 'w') as f:
+    with open(os.path.join(output_dir_path, 'val.csv'), 'w') as f:
         writer = csv.writer(f)
         for file_name in split_dict['validation']:
             writer.writerow([file_name])
@@ -196,9 +196,9 @@ if __name__ == "__main__":
         img_masked[:, : img_masked.shape[1] // 2, :] = img_mean
         compare_imgs(img, img_masked, "Masked -")
     '''
-    parent_dir = os.path.join(os.path.dirname(os.getcwd()), "splits")
-    data_dir_path = os.path.join(parent_dir, 'data')
-    output_dir_path = parent_dir
+    parent_dir = os.path.dirname(os.getcwd())
+    data_dir_path = os.path.join(parent_dir, 'data/SIR2')
+    output_dir_path = os.path.join(parent_dir, 'splits/SIR2')
     generate_data_splits(data_dir_path, output_dir_path)
     print(read_data_splits(os.path.join(output_dir_path, 'train.csv')))
     print()
