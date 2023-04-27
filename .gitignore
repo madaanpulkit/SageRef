@@ -134,8 +134,8 @@ src/.DS_Store
 
 # data
 data/
-SIR2/
-CEILNET/
+data/SIR2/
+data/CEILNET/
 
 # outputs
 out/
