@@ -26,7 +26,7 @@ optional arguments:
                         mode: [train, eval, predict]
   --epochs EPOCHS       number of training epochs
   --latent_dim LATENT_DIM
-                        feature dimensions for mcr2 projection
+                        latent space feature dimensions
   --out_dir OUT_DIR     output directory
   --data_dir DATA_DIR   data directory
   --split_dir SPLIT_DIR
